@@ -1,23 +1,47 @@
-import logo from './logo.svg';
-import './App.css';
-
+import "./assets/styles/App.scss";
+import TodoList from "./components/TodoList";
+import AddTodo from "./components/AddTodo";
+import { useState } from "react";
 function App() {
+  const [todoList, setTodoList] = useState([]);
+  function addTodo(content) {
+    setTodoList([
+      ...todoList,
+      {
+        id: crypto.randomUUID(),
+        content,
+        edit: false,
+        done: false,
+      },
+    ]);
+  }
+  function toggleEditTodo(id) {
+    setTodoList(
+      todoList.map((todo) =>
+        todo.id === id ? { ...todo, edit: !todo.edit } : todo
+      )
+    );
+  }
+  function editTodo(id, content) {
+    setTodoList(
+      todoList.map((todo) =>
+        todo.id === id ? { ...todo, content, edit: false } : todo
+      )
+    );
+  }
+  function deleteTodo(id) {
+    setTodoList(todoList.filter((todo) => todo.id !== id));
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="card">
+      <AddTodo addTodo={addTodo} />
+      <TodoList
+        todoList={todoList}
+        toggleEditTodo={toggleEditTodo}
+        editTodo={editTodo}
+        deleteTodo={deleteTodo}
+      />
     </div>
   );
 }
