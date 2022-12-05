@@ -2,35 +2,45 @@ import "./assets/styles/App.scss";
 import TodoList from "./components/TodoList";
 import AddTodo from "./components/AddTodo";
 import { useState } from "react";
+import { useEffect } from "react";
+import { getAllByAltText } from "@testing-library/react";
 function App() {
   const [todoList, setTodoList] = useState([]);
-  function addTodo(content) {
-    setTodoList([
-      ...todoList,
-      {
-        id: crypto.randomUUID(),
-        content,
-        edit: false,
-        done: false,
-      },
-    ]);
+
+  useEffect(() => {
+    async function getAll() {
+      try {
+        const response = await fetch("https://restapi.fr/api/wettodo");
+        if (response.ok) {
+          const todos = await response.json();
+          if (Array.isArray(todos)) {
+            setTodoList(todos);
+          } else {
+            setTodoList([todos]);
+          }
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getAll();
+  }, []);
+  function addTodo(todo) {
+    setTodoList([...todoList, todo]);
   }
-  function toggleEditTodo(id) {
-    setTodoList(
-      todoList.map((todo) =>
-        todo.id === id ? { ...todo, edit: !todo.edit } : todo
-      )
-    );
+
+  async function deleteTodo(id) {
+    try {
+      const response = await fetch(`https://restapi.fr/api/wettodo/${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setTodoList(todoList.filter((todo) => todo._id !== id));
+      }
+    } catch (e) {}
   }
-  function editTodo(id, content) {
-    setTodoList(
-      todoList.map((todo) =>
-        todo.id === id ? { ...todo, content, edit: false } : todo
-      )
-    );
-  }
-  function deleteTodo(id) {
-    setTodoList(todoList.filter((todo) => todo.id !== id));
+  function updatedTodo(newTodo) {
+    setTodoList(todoList.map((t) => (t._id === newTodo._id ? newTodo : t)));
   }
 
   return (
@@ -38,9 +48,8 @@ function App() {
       <AddTodo addTodo={addTodo} />
       <TodoList
         todoList={todoList}
-        toggleEditTodo={toggleEditTodo}
-        editTodo={editTodo}
         deleteTodo={deleteTodo}
+        updatedTodo={updatedTodo}
       />
     </div>
   );
